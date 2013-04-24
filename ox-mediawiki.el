@@ -239,9 +239,9 @@ a communication channel."
                 (concat
                  " "
                  (case (org-element-property :checkbox item)
-                   (on "<code>☑</code> ")
+                   (on "☑ ")
                    (trans "<code>[-]</code> ")
-                   (off "<code>☐</code> "))
+                   (off "☐ "))
                  (let ((tag (org-element-property :tag item)))
                    (and tag (format "**%s:** "(org-export-data tag info))))
                  (org-trim contents)
