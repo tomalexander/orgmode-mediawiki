@@ -1,0 +1,11 @@
+* orgmode-mediawiki
+A mediawiki export for Emacs org-mode
+** Installation
+- Make sure you are using org-mode version 8.0
+- Clone this repository
+- Add the following to your .emacs files
+#+BEGIN_SRC common-lisp
+  (add-to-list 'load-path "~/path/to/orgmode-mediawiki")
+  (require 'ox-mediawiki)
+#+END_SRC
+- Open a .org document and run =org-mw-export-as-mediawiki=
