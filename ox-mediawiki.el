@@ -330,8 +330,8 @@ a communication channel."
 			    (if (not (file-name-absolute-p raw-path)) raw-path
 			      (concat "file://" (expand-file-name raw-path))))
 			   (t raw-path))))
-	       (if (not contents) (format "<%s>" path)
-		 (format "[%s](%s)" contents path)))))))
+	       (if (not contents) (format "%s" path)
+		 (format "[%s %s]" path contents)))))))
 
 
 ;;;; Paragraph
