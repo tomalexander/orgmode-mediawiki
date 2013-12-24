@@ -50,14 +50,25 @@ This variable can be set to either `atx' or `setext'."
 	  (const :tag "Use \"Setext\" style" setext)))
 
 ;;Define the default table class
-(defvar org-mw-default-table-class "wikitable"
-  "Non-nil  means that  the mediaWiki  exporter should  specify a
-   class name for this exported  table. Setting this to nil means
-   to exclude any class definition.")
+(defcustom org-mw-default-table-class "wikitable"
+  "Non-nil means that the mediaWiki exporter should specify a class
+name for this exported table. Setting this to nil means to exclude
+any class definition."
+  :group 'org-export-mw
+  :type 'string)
 
+;;
+;; Footnotes.
+;;
+;; TODO: Currently footnotes are just exported as plain text. It would be really
+;;        nice if we have a variable that let the user tell us if they wanted to
+;;        export using the Cite syntax for footnotes.
+;;
+;;        http://www.mediawiki.org/wiki/Help:Extension:Cite
+;;
 (defcustom org-mw-footnote-format "[%s]"
   "The format for the footnote reference.
-   %s will be replaced by the footnote reference itself."
+%s will be replaced by the footnote reference itself."
   :group 'org-export-mw
   :type 'string)
 
@@ -66,7 +77,7 @@ This variable can be set to either `atx' or `setext'."
   :group 'org-export-mw
   :type 'string)
 
-(defcustom org-mw-footnotes-section "= %s =\n%s"
+(defcustom org-mw-footnotes-section "\n----\n=== %s ===\n%s"
   "Format for the footnotes section.
 Should contain a two instances of %s.  The first will be replaced with the
 language-specific word for \"Footnotes\", the second one will be replaced
@@ -129,9 +140,8 @@ by the footnotes themselves."
           n))
 
 (defun org-mw-footnote-reference (footnote-reference contents info)
-  "Transcode  a  FOOTNOTE-REFERENCE  element   from  Org  to  MW.
-   CONTENTS  is   nil.   INFO  is  a   plist  holding  contextual
-   information."
+  "Transcode a FOOTNOTE-REFERENCE element from Org to MW.  CONTENTS is nil.
+INFO is a plist holding contextual information."
   (concat
    ;; Insert separator between two footnotes in a row.
    (let ((prev (org-export-get-previous-element footnote-reference info)))
@@ -154,7 +164,7 @@ by the footnotes themselves."
 
 (defun org-mw--translate (s info)
   "Translate string S according to specified language.
-   INFO is a plist used as a communication channel."
+INFO is a plist used as a communication channel."
   (org-export-translate s :ascii info))
 
 (defun org-mw-format-footnotes-section (section-name definitions)
@@ -171,7 +181,7 @@ by the footnotes themselves."
 
 (defun org-mw-footnote-section (info)
   "Format the footnote section.
-   INFO is a plist used as a communication channel."
+INFO is a plist used as a communication channel."
   (let* ((fn-alist (org-export-collect-footnote-definitions
 		    (plist-get info :parse-tree) info))
 	 (fn-alist
