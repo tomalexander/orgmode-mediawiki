@@ -49,6 +49,43 @@ This variable can be set to either `atx' or `setext'."
 	  (const :tag "Use \"atx\" style" atx)
 	  (const :tag "Use \"Setext\" style" setext)))
 
+;;Define the default table class
+(defcustom org-mw-default-table-class "wikitable"
+  "Non-nil means that the mediaWiki exporter should specify a class
+name for this exported table. Setting this to nil means to exclude
+any class definition."
+  :group 'org-export-mw
+  :type 'string)
+
+;;
+;; Footnotes.
+;;
+;; TODO: Currently footnotes are just exported as plain text. It would be really
+;;        nice if we have a variable that let the user tell us if they wanted to
+;;        export using the Cite syntax for footnotes.
+;;
+;;        http://www.mediawiki.org/wiki/Help:Extension:Cite
+;;
+(defcustom org-mw-footnote-format "[%s]"
+  "The format for the footnote reference.
+%s will be replaced by the footnote reference itself."
+  :group 'org-export-mw
+  :type 'string)
+
+(defcustom org-mw-footnote-separator ", "
+  "Text used to separate footnotes."
+  :group 'org-export-mw
+  :type 'string)
+
+(defcustom org-mw-footnotes-section "\n----\n=== %s ===\n%s"
+  "Format for the footnotes section.
+Should contain a two instances of %s.  The first will be replaced with the
+language-specific word for \"Footnotes\", the second one will be replaced
+by the footnotes themselves."
+  :group 'org-export-mw
+  :type 'string)
+
+
 ;;; Define Back-End
 
 (org-export-define-derived-backend 'mw 'html
@@ -71,7 +108,7 @@ This variable can be set to either `atx' or `setext'."
 		     (example-block . org-mw-example-block)
 		     (fixed-width . org-mw-example-block)
 		     (footnote-definition . ignore)
-		     (footnote-reference . ignore)
+		     (footnote-reference . org-mw-footnote-reference)
 		     (headline . org-mw-headline)
 		     (horizontal-rule . org-mw-horizontal-rule)
 		     (inline-src-block . org-mw-verbatim)
@@ -94,8 +131,73 @@ This variable can be set to either `atx' or `setext'."
              (table-row . org-mw-table-row)
              ))
 
-;;; Filters
+;;
+;; Footnote support
+;;
+(defun org-mw-format-footnote-reference (n def refcnt)
+  "Format footnote reference N. def and refcnt are ignored."
+  (format org-mw-footnote-format
+          n))
 
+(defun org-mw-footnote-reference (footnote-reference contents info)
+  "Transcode a FOOTNOTE-REFERENCE element from Org to MW.  CONTENTS is nil.
+INFO is a plist holding contextual information."
+  (concat
+   ;; Insert separator between two footnotes in a row.
+   (let ((prev (org-export-get-previous-element footnote-reference info)))
+     (when (eq (org-element-type prev) 'footnote-reference)
+       org-mw-footnote-separator))
+   (cond
+    ((not (org-export-footnote-first-reference-p footnote-reference info))
+     (org-mw-format-footnote-reference
+      (org-export-get-footnote-number footnote-reference info)
+      "IGNORED" 2))
+    ;; Inline definitions are secondary strings.
+    ((eq (org-element-property :type footnote-reference) 'inline)
+     (org-mw-format-footnote-reference
+      (org-export-get-footnote-number footnote-reference info)
+      "IGNORED" 1))
+    ;; Non-inline footnotes definitions are full Org data.
+    (t (org-mw-format-footnote-reference
+	(org-export-get-footnote-number footnote-reference info)
+	"IGNORED" 1)))))
+
+(defun org-mw--translate (s info)
+  "Translate string S according to specified language.
+INFO is a plist used as a communication channel."
+  (org-export-translate s :ascii info))
+
+(defun org-mw-format-footnotes-section (section-name definitions)
+  "Format footnotes section SECTION-NAME."
+  (if (not definitions) ""
+    (format org-mw-footnotes-section section-name definitions)))
+
+(defun org-mw-format-footnote-definition (fn)
+  "Format the footnote definition FN."
+  (let ((n (car fn)) (def (cdr fn)))
+    (format "[%s] %s\n"
+            n
+            def)))
+
+(defun org-mw-footnote-section (info)
+  "Format the footnote section.
+INFO is a plist used as a communication channel."
+  (let* ((fn-alist (org-export-collect-footnote-definitions
+		    (plist-get info :parse-tree) info))
+	 (fn-alist
+	  (loop for (n type raw) in fn-alist collect
+		(cons n (if (eq (org-element-type raw) 'org-data)
+			    (org-trim (org-export-data raw info))
+			  (format "%s"
+				  (org-trim (org-export-data raw info))))))))
+    (when fn-alist
+      (org-mw-format-footnotes-section
+       (org-mw--translate "Footnotes" info)
+       (format
+	"\n%s\n"
+	(mapconcat 'org-mw-format-footnote-definition fn-alist "\n"))))))
+
+;;; Filters
 (defun org-mw-separate-elements (tree backend info)
   "Make sure elements are separated by at least one blank line.
 
@@ -114,7 +216,6 @@ Assume BACKEND is `mw'."
   tree)
 
 
-
 ;;; Transcode Functions
 
 ;;;; Bold
@@ -416,7 +517,10 @@ as a communication channel."
   "Return complete document string after Mediawiki conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist used
 as a communication channel."
-  contents)
+    (concat
+     contents
+     ;; Footnotes section.
+     (org-mw-footnote-section info)))
 
 ;;;; Tabel Cell
 
@@ -559,8 +663,10 @@ contextual information."
                      ""
                      ))
                  (org-mw-table-first-row-data-cells table info) "\n"))))) ;; End of Let*
-
-       (format "{|\n%s\n%s\n%s\n|}"
+       (format "{| %s\n%s\n%s\n%s\n|}"
+               (if (not org-mw-default-table-class) ""
+                 (format "class=%s"
+                         org-mw-default-table-class))
                (if (not caption) ""
                  (format "|+ %s\n"
                          (org-export-data caption info)))
@@ -576,7 +682,6 @@ plist used as a communication channel.  Return the table of
 contents as a string, or nil if it is empty."
   'nil)
 
-
 ;;; Interactive function
 
 ;;;###autoload
