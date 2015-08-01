@@ -4,7 +4,9 @@
 
 ;; Author: Tom Alexander <tomalexander@paphus.com>
 ;; Author: Tim Visher <tim.visher@gmail.com>
+;; Package-Requires: ((cl-lib "0.5") (s "1.9.0"))
 ;; Keywords: org, wp, mediawiki
+;; Homepage: https://github.com/tomalexander/orgmode-mediawiki
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -31,6 +33,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 's)
 (require 'ox-html)
 
 ;;; User-Configurable Variables
