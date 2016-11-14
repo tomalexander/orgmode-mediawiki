@@ -93,7 +93,6 @@ by the footnotes themselves."
 ;;; Define Back-End
 
 (org-export-define-derived-backend 'mw 'html
-  :export-block '("MW" "MEDIAWIKI")
   :filters-alist '((:filter-parse-tree . org-mw-separate-elements))
   :menu-entry
   '(?m "Export to Mediawiki"
