@@ -104,8 +104,8 @@ by the footnotes themselves."
               (if a (org-mw-export-to-mediawiki t s v)
                 (org-open-file (org-mw-export-to-mediawiki nil s v)))))))
   :translate-alist '((bold . org-mw-bold)
-                     (code . org-mw-verbatim)
-                     (underline . org-mw-verbatim)
+                     (code . org-mw-code)
+                     (underline . org-mw-underline)
                      (comment . (lambda (&rest args) ""))
                      (comment-block . (lambda (&rest args) ""))
                      (example-block . org-mw-example-block)
@@ -114,7 +114,7 @@ by the footnotes themselves."
                      (footnote-reference . org-mw-footnote-reference)
                      (headline . org-mw-headline)
                      (horizontal-rule . org-mw-horizontal-rule)
-                     (inline-src-block . org-mw-verbatim)
+                     (inline-src-block . org-mw-code)
                      (italic . org-mw-italic)
                      (item . org-mw-item)
                      (line-break . org-mw-line-break)
@@ -228,19 +228,40 @@ CONTENTS is the text within bold markup.  INFO is a plist used as
 a communication channel."
   (format "'''%s'''" contents))
 
+(defun org-mw-inline-formatter (value fmt1 fmt2)
+  (format (cond ((not (string-match "`" value)) fmt2)
+                ((or (string-match "\\``" value)
+                     (string-match "`\\'" value))
+                 fmt1)
+                (t fmt2))
+          value))
 
-;;;; Code and Verbatim
+;;;; Code and Inline source block
+(defun org-mw-code (code contents info)
+  "Transcode CODE and INLINE-SRC-BLOCK object into Mediawiki format.
+CONTENTS is nil.  INFO is a plist used as a communication
+channel."
+  (org-mw-inline-formatter
+   (org-element-property :value code)
+   "<code> %s </code>"
+   "<code>%s</code>"))
 
+;;;; Verbatim
 (defun org-mw-verbatim (verbatim contents info)
   "Transcode VERBATIM object into Mediawiki format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
-  (format (cond ((not (string-match "`" contents)) "`%s`")
-                ((or (string-match "\\``" contents)
-                     (string-match "`\\'" contents))
-                 "<code> %s </code>")
-                (t "<code>%s</code>"))
-          contents))
+  (org-mw-inline-formatter
+   (org-element-property :value verbatim)
+   "<tt> %s </tt>"
+   "<tt>%s</tt>"))
+
+;;;; underline
+(defun org-mw-underline (underline contents info)
+  "Transcode VERBATIM object into Mediawiki format.
+CONTENTS is nil.  INFO is a plist used as a communication
+channel."
+  (format  "<u>%s</u>"  (org-element-property :value underline)))
 
 ;;;; Example Block and Src Block
 
