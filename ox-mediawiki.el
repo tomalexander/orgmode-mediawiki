@@ -318,7 +318,8 @@ a communication channel."
                 "\n\n"
                 contents))
        ;; Use "atx" style.
-       (t (concat (make-string level ?=) " " heading tags " " (make-string level ?=) "\n" contents))))))
+       (t (concat (make-string level ?=) " " heading tags " "
+                  (make-string level ?=) "\n" contents))))))
 
 
 ;;;; Horizontal Rule
@@ -388,11 +389,12 @@ a communication channel."
                (concat
                 (and contents (concat contents " "))
                 (format "(%s)"
-                        (format (org-export-translate "See section %s" :html info)
-                                (mapconcat 'number-to-string
-                                           (org-export-get-headline-number
-                                            destination info)
-                                           ".")))))))
+                        (format
+                         (org-export-translate "See section %s" :html info)
+                         (mapconcat 'number-to-string
+                                    (org-export-get-headline-number
+                                     destination info)
+                                    ".")))))))
           ((org-export-inline-image-p link org-html-inline-image-rules)
            (let ((path (let ((raw-path (org-element-property :path link)))
                          (if (not (file-name-absolute-p raw-path)) raw-path
@@ -433,7 +435,8 @@ a communication channel."
                               (concat "file://" (expand-file-name raw-path))))
                            (t raw-path))))
                (if (not contents) (format "%s" path)
-                 (format "[%s %s]" path (s-join " " (s-split "\n" contents)))))))))
+                 (format "[%s %s]" path
+                         (s-join " " (s-split "\n" contents)))))))))
 
 
 ;;;; Paragraph
@@ -593,7 +596,8 @@ contextual information."
                                      table-cell info)))
                      ""
                      ))
-                 (org-mw-table-first-row-data-cells table info) "\n"))))) ;; End of Let*
+                 (org-mw-table-first-row-data-cells table info)
+                 "\n"))))) ;; End of Let*
        (format "{| %s\n%s\n%s\n%s\n|}"
                (if (not org-mw-default-table-class) ""
                  (format "class=%s"
