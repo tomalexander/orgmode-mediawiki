@@ -89,6 +89,11 @@ by the footnotes themselves."
   :group 'org-export-mw
   :type 'string)
 
+(defcustom org-mw-filename-extension ".mw"
+  "Extension to use for file names when exporting."
+  :group 'org-export-mw
+  :type 'string)
+
 
 ;;; Define Back-End
 
@@ -682,7 +687,8 @@ contents of hidden elements.
 
 Return output file's name."
   (interactive)
-  (let ((outfile (org-export-output-file-name ".mw" subtreep)))
+  (let ((outfile (org-export-output-file-name
+                  org-mw-filename-extension subtreep)))
     (if async
  (org-export-async-start
             (lambda (f) (org-export-add-to-stack f 'mw))
