@@ -341,16 +341,35 @@ as a communication channel."
 
 
 ;;;; Item
+(defun org-mw-item-get-depth (item)
+  "Calculate the bullet depth of ITEM."
+  (let ((depth 0))
+    (while item
+      (setq item (org-export-get-parent item))
+      (if (equal (car item) 'plain-list)
+          (setq depth (+ depth 1))))
+    depth))
+
+(defun org-mw-paragraph-to-oneline(contents)
+  "Replace newline + spaces in CONTENTS with just a space.
+This makes paragraphs spread across multiple lines into a single
+line, a format that mediawiki likes better."
+  (replace-regexp-in-string "\n*$" "\n"
+                            (replace-regexp-in-string "\n\s*\\([^*]\\)" " \\1"
+                                                      contents)))
+
 (defun org-mw-item (item contents info)
   "Transcode ITEM element into Mediawiki format.
 CONTENTS is the item contents.  INFO is a plist used as
 a communication channel."
   (let* ((type (org-element-property :type (org-export-get-parent item)))
+         (contents-oneline (org-mw-paragraph-to-oneline contents))
          (struct (org-element-property :structure item))
-         (bullet (if (not (eq type 'ordered)) "*"
-                   "#"))
-         (the-item (s-join "\n  " (s-split "\n" (org-trim contents)))))
-    (format "%s %s" bullet the-item)))
+         (level (org-mw-item-get-depth item))
+         (bullet (make-string (or level 1) (if (not (eq type 'ordered)) ?*
+                                      ?#)))
+         (the-item (org-trim contents-oneline)))
+    (format "%s%s" bullet the-item)))
 
 ;;;; Line Break
 
