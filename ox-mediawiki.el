@@ -515,7 +515,7 @@ a communication channel."
   ;; "^" "> "
   (concat
    "<blockquote>"
-   (replace-regexp-in-string "\n\\'" "" contents) "<blockquote>"))
+   (replace-regexp-in-string "\n\\'" "" contents) "</blockquote>"))
 
 
 ;;;; Section
