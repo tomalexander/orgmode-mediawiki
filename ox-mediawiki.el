@@ -55,9 +55,8 @@ This variable can be set to either `atx' or `setext'."
 
 ;;Define the default table class
 (defcustom org-mw-default-table-class "wikitable"
-  "Non-nil means that the mediaWiki exporter should specify a class
-name for this exported table. Setting this to nil means to exclude
-any class definition."
+  "The CSS class for table export.
+Setting this to nil means to exclude any class definition."
   :group 'org-export-mw
   :type 'string)
 
@@ -142,7 +141,7 @@ by the footnotes themselves."
 ;; Footnote support
 ;;
 (defun org-mw-format-footnote-reference (n def refcnt)
-  "Format footnote reference N. def and refcnt are ignored."
+  "Format footnote reference N. DEF and REFCNT are ignored."
   (format org-mw-footnote-format
           n))
 
@@ -175,7 +174,7 @@ INFO is a plist used as a communication channel."
   (org-export-translate s :ascii info))
 
 (defun org-mw-format-footnotes-section (section-name definitions)
-  "Format footnotes section SECTION-NAME."
+  "Format DEFINITIONS in section SECTION-NAME."
   (if (not definitions) ""
     (format org-mw-footnotes-section section-name definitions)))
 
@@ -192,7 +191,7 @@ INFO is a plist used as a communication channel."
   (let* ((fn-alist (org-export-collect-footnote-definitions
                     info (plist-get info :parse-tree)))
          (fn-alist
-          (loop for (n type raw) in fn-alist collect
+          (cl-loop for (n type raw) in fn-alist collect
                 (cons n (if (eq (org-element-type raw) 'org-data)
                             (org-trim (org-export-data raw info))
                           (format "%s"
@@ -234,6 +233,7 @@ a communication channel."
   (format "'''%s'''" contents))
 
 (defun org-mw-inline-formatter (value fmt1 fmt2)
+  "Format VALUE using FMT1 or FMT2."
   (format (cond ((not (string-match "`" value)) fmt2)
                 ((or (string-match "\\``" value)
                      (string-match "`\\'" value))
@@ -263,7 +263,7 @@ channel."
 
 ;;;; underline
 (defun org-mw-underline (underline contents info)
-  "Transcode VERBATIM object into Mediawiki format.
+  "Transcode UNDERLINE object into Mediawiki format.
 CONTENTS is nil.  INFO is a plist used as a communication
 channel."
   (format  "<u>%s</u>"  (org-element-property :value underline)))
@@ -382,7 +382,7 @@ channel."
 ;;;; Link
 ;; craftkiller: todo: revisit
 (defun org-mw-link (link contents info)
-  "Transcode LINE-BREAK object into Mediawiki format.
+  "Transcode LINK object into Mediawiki format.
 CONTENTS is the link's description.  INFO is a plist used as
 a communication channel."
   (let ((--link-org-files-as-html-maybe
@@ -575,7 +575,7 @@ INFO is a plist used as a communication channel."
       (cdr (org-element-contents table-row)))))
 
 (defun org-mw-table--table.el-table (table info)
-  "Format table.el tables into HTML.
+  "Format table.el TABLE into HTML.
 INFO is a plist used as a communication channel."
   (when (eq (org-element-property :type table) 'table.el)
     (require 'table)
@@ -595,7 +595,7 @@ INFO is a plist used as a communication channel."
   "Transcode a TABLE element from Org to HTML.
 CONTENTS is the contents of the table.  INFO is a plist holding
 contextual information."
-  (case (org-element-property :type table)
+  (cl-case (org-element-property :type table)
     ;; Case 1: table.el table.  Convert it using appropriate tools.
     (table.el (org-mw-table--table.el-table table info))
     ;; Case 2: Standard table.
@@ -680,9 +680,9 @@ non-nil."
 
 ;;;###autoload
 (defun org-mw-convert-region-to-mw ()
-  "Assume the current region has org-mode syntax, and convert it to Mediawiki.
+  "Assume the current region has `org-mode` syntax, and convert it to Mediawiki.
 This can be used in any buffer.  For example, you can write an
-itemized list in org-mode syntax in a Mediawiki buffer and use
+itemized list in `org-mode` syntax in a Mediawiki buffer and use
 this command to convert it."
   (interactive)
   (org-export-replace-region-by 'mw))
