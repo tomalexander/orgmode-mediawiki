@@ -99,7 +99,7 @@ by the footnotes themselves."
 (org-export-define-derived-backend 'mw 'html
   :filters-alist '((:filter-parse-tree . org-mw-separate-elements))
   :menu-entry
-  '(?m "Export to Mediawiki"
+  '(?M "Export to Mediawiki"
        ((?M "To temporary buffer"
             (lambda (a s v b) (org-mw-export-as-mediawiki a s v)))
         (?m "To file" (lambda (a s v b) (org-mw-export-to-mediawiki a s v)))
